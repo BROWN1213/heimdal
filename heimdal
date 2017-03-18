@@ -8,10 +8,10 @@
 #include <LiquidCrystal_I2C.h>
 
 
-const int trigPin1 = 2;
-const int echoPin1 = 3;
 int motor = 6;
 int door_led = 10;
+const int trigPin1 = 11;
+const int echoPin1 = 12;
 
 Servo myservo; //Heimdal
 LiquidCrystal_I2C lcd(0x27,16,2);
