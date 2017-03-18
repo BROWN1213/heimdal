@@ -1,7 +1,3 @@
-//BLYNK_GATE_V0.1
-
-
-
 #define BLYNK_PRINT Serial // Comment this out to disable prints and save space
 #include <ESP8266_Lib.h>
 #include <BlynkSimpleShieldEsp8266.h>
@@ -47,21 +43,33 @@ SimpleTimer timer;
 
 
 
-
-
-void setup_Heimdal()
+void Heimdal_setup()
 {
   myservo.attach(6);
   pinMode(trigPin1,OUTPUT);
   pinMode(echoPin1,INPUT);
   pinMode(door_led,OUTPUT);
-
 }
-void gate_open() {
+
+void BLYNK_setup()
+{
+    // Set console baud rate
+  Serial.begin(115200);
+  delay(10);
+  // Set ESP8266 baud rate
+  EspSerial.begin(ESP8266_BAUD);
+  delay(10);
   
+  Blynk.begin(auth, wifi, ssid, pass);
+  
+  // Setup a function to be called every second
+  timer.setInterval(3000L, Heimdal_run);
+}
+
+void gate_open() 
+{
   digitalWrite(door_led,HIGH);
-  Serial.println("GATE OPEN");
-  lcd.setCursor(0,1); //첫줄
+  lcd.setCursor(2,1); //첫줄
   lcd.print("GATE   OPEN");
   delay(1000);
 
@@ -77,13 +85,28 @@ void gate_open() {
 {
   
   digitalWrite(motor, LOW);
-  Serial.println("GATE CLOSED");
-  lcd.setCursor(0,1); //첫줄
+  lcd.setCursor(1,1); 
   lcd.print("GATE CLOSED");
   digitalWrite(door_led,LOW);
 
 }
 
+  BLYNK_WRITE(V2)
+{
+int i=param.asInt();
+if((distance1 < 5) && (distance1 > 0))
+{
+  lcd.setCursor(0,0);
+    lcd.print("Someone is detected");
+}if((i=1)&&(distance1 < 5) && (distance1 > 0) || (i=1))  
+{
+  gate_open();
+  
+}else
+{
+  gate_close();
+}
+}
 
 void Heimdal_run()
   {
@@ -96,56 +119,19 @@ void Heimdal_run()
     duration1 = pulseIn(echoPin1, HIGH);
     distance1 = (duration1/2) / 29.1;
     Serial.println(distance1);
-     
-
-  myservo.write(0);
-  delay(1000); // moved to main loop
+    
+    myservo.write(0);
+    delay(1000); // moved to main loop
 }
 
-
-
-
-BLYNK_WRITE(V2)
-
-{
-
-int i=param.asInt();
-if((i=1)&&(distance1 < 5) && (distance1 > 0))
- {
-  gate_open();
-  
-  }else
-  
-  {
-    gate_close();
-
-  } 
-
+void setup() {
+Heimdal_setup();
+BLYNK_setup();
 }
 
-
-
-void setup()
-{
-  setup_Heimdal();
-  
-  // Set console baud rate
-  Serial.begin(115200);
-  delay(10);
-  // Set ESP8266 baud rate
-  EspSerial.begin(ESP8266_BAUD);
-  delay(10);
-  
-  Blynk.begin(auth, wifi, ssid, pass);
-  
-  // Setup a function to be called every second
-  timer.setInterval(3000L, Heimdal_run);
-
-}
-
-void loop()
-{
+void loop() {
 Blynk.run();
 timer.run();
 Heimdal_run();
+
 }
